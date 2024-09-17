@@ -1,16 +1,20 @@
-# htn2024
+## Inspiration
+Taking a look at our own elementary educations, we realized we could have achieved a lot more and enjoyed it a lot more if we were just motivated to do so. Thus, we set out on a journey to make learning more fun and accessible for the younger demographic. Our goal is to make learning just a little bit more fun and hopefully have a positive impact on the education of today's youth.
 
-A new Flutter project.
+## What it does
+This program as an education tool built around AI. By taking pictures or something, you learn more about it thanks to the LLM powering our education. We are also marketing towards young children, with most of the language from the LLM being much more appealing to those that are of a younger age.
 
-## Getting Started
+## How we built it
+This entire app was built almost entirely of Flutter, with a backend made of Flask and some APIs like Groq and Roboflow as well. This allowed us to integrate AI much more easily into our work, while we focused more on the frontend with Flutter.
 
-This project is a starting point for a Flutter application.
+## Challenges we ran into
+Most of the challenges that we ran into were during the move from Flet to Flutter. While we were still using Flet, we found out that it couldn't take pictures. This caused us to not only have to lose a night of work, but also gave us a new framework to learn.
 
-A few resources to get you started if this is your first Flutter project:
+## Accomplishments that we're proud of
+We are absolutely stoked to have been able to create a fully working and cohesive prototype that matches the vision we had when we first came up with the idea. This project was one that we would never have imagined we could pull off before attending HacktheNorth. We are especially proud to have come so far in the AI workspace, and collaborated so well within our team. Despite the hurdles, we made it to the end and could not be more proud of ourselves. To confess though, our biggest accomplishment might have to be (mostly) making it through two sleepless nights WITHOUT caffeine. 
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+## What we learned
+First and foremost, we learned that app development is a complicated and tedious process. Although testing and debugging took up most of one of our member's time specifically, it ended up being a problem that affected the whole team and limited what we could do while bugs were present. That being said, we also learned that there are now a huge variety of different tools that are accessible to the general user, such as Flutter and Groq, which help smooth out the rest of the development process. Without these prebuilt systems, we could never have put together our project in such a short time, and we believe that because of these models, it is the best time for new hackers like us to transform our ideas into realities. Furthermore, we learned early on that teamwork is an absolutely essential skill to have. Especially due to our tight 36 hour deadline, everyone had to take on a specific role very quickly. However, what really drove the project to where it is today was the mentality of completing your role and asking others "How can I help?". Lastly, we learned that a little bit of outside critique goes quite a long way. Speaking with mentors and attending their workshops throughout the HacktheNorth event helped put us on the right track and truly understand the kind of change we wanted to have on the world. This year, we focused on reinventing education, but without a little bit of feedback, we might have ended up in a totally different spot than now.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## What's next for Learn Lens AI
+Learn Lens AI is far from a complete product. There were many many ideas that we came up with even early in brainstorming that we simply did not have the time to implement. For example, one of the core ideas we came up with was the addition of classes. Students could join classes and compete or collaborate to fulfill tasks (e.g. take a certain amount of unique photos) and be rewarded by their teacher. Another idea we had was to make learning more of a surprise. By revealing more and more information each time an object is scanned, it would make scanning repeat objects a new experience too! Then, to build onto this concept, adding little flairs to collected cards would further incentivize players to re-scan items. Furthermore, we wanted to add AI generated quizzes and image generation into our software to spice things up and make the app a little more unique. This would reinforce knowledge learned from the app, and also lend well into another idea we could not implement for the demo. Creating level requirements for different features would have been a cool way to actually give use to the level system other than bragging rights, but unfortunately, we could not code it in just 36 hours. Aside from just adding on new features, we also considered reimagining our project and gearing it towards more mature audiences. We believe that this application could be helpful for older students hoping to retain information for big assessments. By shifting the focus more towards testing their knowledge and giving a single space to store all their study material, Learn Lens AI could be helpful for even post-secondary students!

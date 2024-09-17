@@ -63,13 +63,12 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
 
   List<String> appBarNames = ["Compendium", "Scan", "Profile"];
-  bool scannedCube = false;
-  bool scannedPyramid = false;
-  bool scannedCylinder = false;
-  Map<String, String> results = Map();
+  Map<String, String> results = {};
+  Map<String, Image> pictureResults = {};
   int currentPageIndex = 0;
-  
-  
+  bool signedIn = false;
+  String givenName = "";
+  String logPfp = "";
 
   pickImage() async {
     final imagePicker = ImagePicker();
@@ -77,12 +76,14 @@ class _MyHomePageState extends State<MyHomePage> {
     if (input == null) {
       return;
     }
-    File image = File(input!.path);
+    File image = File(input.path);
     // do the flask stuff with image here, plus save into results
   }
 
   @override
   Widget build(BuildContext context) {
+    Image pfpPath = signedIn ? Image.network(logPfp) : Image.asset("images/app-image.png");
+    double currentXP = (300 * results.length) / 4500;
     
     // This method is rerun every time setState is called, for instance as done
     // by the _incrementCounter method above.
@@ -131,11 +132,27 @@ class _MyHomePageState extends State<MyHomePage> {
         ]
       ),
       body: <Widget>[
-        Icon(Icons.book_outlined),
+        Column(
+          children: [
+            Offstage(offstage: !results.isEmpty, child: Center(child: Text("Aw, no scans!"), )),
+            Offstage(offstage: !results.containsKey("Cube"), child: ScannedItemCard(image: results.containsKey("Cube") ? pictureResults["Cube"] : Image.asset("images/app-image.png"), response: results.containsKey("Cube") ? results["Cube"] : "no",)),
+            Offstage(offstage: !results.containsKey("Cylinder"), child: ScannedItemCard(image: results.containsKey("Cylinder") ? pictureResults["Cylinder"] : Image.asset("images/app-image.png"), response: results.containsKey("Cylinder") ? results["Cylinder"] : "no"),),
+            Offstage(offstage: !results.containsKey("Pyramid"), child: ScannedItemCard(image: results.containsKey("Pyramid") ? pictureResults["Pyramid"] : Image.asset("images/app-image.png"), response: results.containsKey("Pyramid") ? results["Pyramid"] : "no"))
+            ],
+        ),
         Center(child: EasyButton(idleStateWidget: Icon(Icons.camera_alt), loadingStateWidget: CircularProgressIndicator(), useWidthAnimation: false, buttonColor: Theme.of(context).colorScheme.inversePrimary, borderRadius: 10, onPressed: () => {
           pickImage()
         }, width: 50,)),
-        Icon(Icons.home_filled),
+        Column(
+          children: [
+            pfpPath,
+            Text(!signedIn ? "Welcome Guest!" : "Welcome child of $givenName!"),
+            Offstage(offstage: !signedIn, child: LinearProgressIndicator(value: currentXP)),
+            Offstage(offstage: !signedIn, child: Text("$currentXP/4500")),
+            Offstage(offstage: !signedIn, child: Text("Friends")),
+            Offstage(offstage: !signedIn, child: const Text( "What did you expect? There's no one else here."))
+          ],
+        ),
       ][currentPageIndex], // This trailing comma makes auto-formatting nicer for build methods.
       
     );
@@ -151,15 +168,40 @@ class MySettingsPageState extends StatelessWidget {
           backgroundColor: Theme.of(context).colorScheme.inversePrimary,
           title: const Text("Options"),
         ),
-        body: const Center(
-          child: Text("Nothing here!")
+        body: Center(
+          child: Column(
+            children: [
+              TextButton(onPressed: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => const NoSettings()));
+              }, child: const Text("Account Data")),
+              TextButton(onPressed: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => const NoSettings()));
+              }, child: const Text("Support")),
+            ],
+          )
         )
       );
   }
 }
 
-class ScannedItemCard extends StatelessWidget {
-  const ScannedItemCard({super.key, required this.image, this.result="nope", this.response="nope"});
+class NoSettings extends StatelessWidget {
+  const NoSettings({super.key});
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+          title: const Text("Nothing!"),
+      ),
+      body: const Center(
+        child: Text("Yea, nothing."),
+      ),
+    );
+  }
+}
+
+class ScannedItemState extends StatelessWidget {
+  const ScannedItemState({super.key, required this.image, this.result="nope", this.response="nope"});
 
   final image;
   final result;
@@ -175,6 +217,27 @@ class ScannedItemCard extends StatelessWidget {
         children: [
           Text(result == "nope" ? response : result),
           Image.file(image),
+          //throw result into prompt here
+        ],
+      )
+    );
+  }
+}
+
+class ScannedItemCard extends StatelessWidget {
+  const ScannedItemCard({super.key, required this.image, this.result="nope", this.response="nope"});
+
+  final image;
+  final result;
+  final response;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Column(
+        children: [
+          Text(result == "nope" ? response : result),
+          image,
           //throw result into prompt here
         ],
       )

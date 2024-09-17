@@ -155,8 +155,10 @@ class _MyHomePageState extends State<MyHomePage> {
         Column(
           children: [
             Offstage(offstage: !results.isEmpty, child: Center(child: Text("Aw, no scans!"), )),
-            Offstage(offstage: !results.containsKey("Cube"), child: ScannedItemCard(image: results.containsKey("Cube") ? pictureResults["Cube"] : Image.asset("images/app-image.png", width: 156, height: 201), result: "Cube", response: results.containsKey("Cube") ? results["Cube"] : "no",)),
-            Offstage(offstage: !results.containsKey("Cylinder"), child: ScannedItemCard(image: results.containsKey("Cylinder") ? pictureResults["Cylinder"] : Image.asset("images/app-image.png", width: 156, height: 201), result: "Cylinder", response: results.containsKey("Cylinder") ? results["Cylinder"] : "no"),),
+            Row(children: [
+              Offstage(offstage: !results.containsKey("Cube"), child: ScannedItemCard(image: results.containsKey("Cube") ? pictureResults["Cube"] : Image.asset("images/app-image.png", width: 156, height: 201), result: "Cube", response: results.containsKey("Cube") ? results["Cube"] : "no",)),
+              Offstage(offstage: !results.containsKey("Cylinder"), child: ScannedItemCard(image: results.containsKey("Cylinder") ? pictureResults["Cylinder"] : Image.asset("images/app-image.png", width: 156, height: 201), result: "Cylinder", response: results.containsKey("Cylinder") ? results["Cylinder"] : "no"),),
+            ],), 
             Offstage(offstage: !results.containsKey("Pyramid"), child: ScannedItemCard(image: results.containsKey("Pyramid") ? pictureResults["Pyramid"] : Image.asset("images/app-image.png", width: 156, height: 201), result: "Pyramid", response: results.containsKey("Pyramid") ? results["Pyramid"] : "no"))
             ],
         ),

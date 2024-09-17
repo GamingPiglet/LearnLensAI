@@ -32,7 +32,7 @@ def classify():
     filename = werkzeug.utils.secure_filename(imagefile.filename)
     imagefile.save(os.path.join(app.root_path, app.config["UPLOAD_FOLDER"], filename))
     imagefile.close()
-    return CLIENT.infer(os.path.join(app.root_path, app.config["UPLOAD_FOLDER"], filename), model_id="htn-image-detect/3")
+    return CLIENT.infer(os.path.join(app.root_path, app.config["UPLOAD_FOLDER"], filename), model_id="htn-image-detect/4")
     
 @app.route("/explain", methods=["POST"])
 def ask():

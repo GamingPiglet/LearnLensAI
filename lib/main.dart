@@ -1,5 +1,8 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
+import 'package:http_parser/http_parser.dart';
 import 'package:easy_loading_button/easy_loading_button.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
@@ -78,11 +81,28 @@ class _MyHomePageState extends State<MyHomePage> {
     }
     File image = File(input.path);
     // do the flask stuff with image here, plus save into results
+    final request = MultipartRequest("POST", Uri.parse("http://10.37.100.14:3000/infer"));
+    final headers = {"Content-Type": "multipart/form-data"};
+
+    request.files.add(MultipartFile('image', image.readAsBytes().asStream(), image.lengthSync(), filename: "upload.jpg", contentType: MediaType('image', "jpg")));
+    request.headers.addAll(headers);
+    final response = await request.send();
+    Response extract = await Response.fromStream(response);
+    final jsoned = jsonDecode(extract.body);
+    String guess = jsoned["predictions"][0]["class"];
+    final promptRequest = await post(Uri.parse("http://10.37.100.14:3000/explain"), headers: <String, String> {'Content-Type': 'application/json; charset=UTF-8',
+    }, body: jsonEncode(<String, String> {
+      'request': guess
+    }));
+    final actualPrompt = promptRequest.body;
+    results[guess] = actualPrompt;
+    pictureResults[guess] = Image.file(image, width: 156, height: 201);
+    Navigator.push(context, MaterialPageRoute(builder: (context) =>  ScannedItemState(image: Image.file(image, width: 156, height: 201), result: guess, response: actualPrompt,)));
   }
 
   @override
   Widget build(BuildContext context) {
-    Image pfpPath = signedIn ? Image.network(logPfp) : Image.asset("images/app-image.png");
+    Image pfpPath = signedIn ? Image.network(logPfp, width: 156, height: 201,) : Image.asset("images/app-image.png", width: 156, height: 201,);
     double currentXP = (300 * results.length) / 4500;
     
     // This method is rerun every time setState is called, for instance as done
@@ -135,21 +155,22 @@ class _MyHomePageState extends State<MyHomePage> {
         Column(
           children: [
             Offstage(offstage: !results.isEmpty, child: Center(child: Text("Aw, no scans!"), )),
-            Offstage(offstage: !results.containsKey("Cube"), child: ScannedItemCard(image: results.containsKey("Cube") ? pictureResults["Cube"] : Image.asset("images/app-image.png"), response: results.containsKey("Cube") ? results["Cube"] : "no",)),
-            Offstage(offstage: !results.containsKey("Cylinder"), child: ScannedItemCard(image: results.containsKey("Cylinder") ? pictureResults["Cylinder"] : Image.asset("images/app-image.png"), response: results.containsKey("Cylinder") ? results["Cylinder"] : "no"),),
-            Offstage(offstage: !results.containsKey("Pyramid"), child: ScannedItemCard(image: results.containsKey("Pyramid") ? pictureResults["Pyramid"] : Image.asset("images/app-image.png"), response: results.containsKey("Pyramid") ? results["Pyramid"] : "no"))
+            Offstage(offstage: !results.containsKey("Cube"), child: ScannedItemCard(image: results.containsKey("Cube") ? pictureResults["Cube"] : Image.asset("images/app-image.png", width: 156, height: 201), result: "Cube", response: results.containsKey("Cube") ? results["Cube"] : "no",)),
+            Offstage(offstage: !results.containsKey("Cylinder"), child: ScannedItemCard(image: results.containsKey("Cylinder") ? pictureResults["Cylinder"] : Image.asset("images/app-image.png", width: 156, height: 201), result: "Cylinder", response: results.containsKey("Cylinder") ? results["Cylinder"] : "no"),),
+            Offstage(offstage: !results.containsKey("Pyramid"), child: ScannedItemCard(image: results.containsKey("Pyramid") ? pictureResults["Pyramid"] : Image.asset("images/app-image.png", width: 156, height: 201), result: "Pyramid", response: results.containsKey("Pyramid") ? results["Pyramid"] : "no"))
             ],
         ),
-        Center(child: EasyButton(idleStateWidget: Icon(Icons.camera_alt), loadingStateWidget: CircularProgressIndicator(), useWidthAnimation: false, buttonColor: Theme.of(context).colorScheme.inversePrimary, borderRadius: 10, onPressed: () => {
-          pickImage()
-        }, width: 50,)),
+        Center(child: EasyButton(idleStateWidget: Icon(Icons.camera_alt), loadingStateWidget: CircularProgressIndicator(), useWidthAnimation: false, buttonColor: Theme.of(context).colorScheme.inversePrimary, borderRadius: 10, onPressed: () async => {
+          await pickImage()
+          
+        }, width: 50, useEqualLoadingStateWidgetDimension: true, contentGap: 10,)),
         Column(
           children: [
             pfpPath,
-            Text(!signedIn ? "Welcome Guest!" : "Welcome child of $givenName!"),
+            Text(!signedIn ? "Welcome Guest!" : "Welcome child of $givenName!",),
             Offstage(offstage: !signedIn, child: LinearProgressIndicator(value: currentXP)),
             Offstage(offstage: !signedIn, child: Text("$currentXP/4500")),
-            Offstage(offstage: !signedIn, child: Text("Friends")),
+            Offstage(offstage: !signedIn, child: Text("Friends",)),
             Offstage(offstage: !signedIn, child: const Text( "What did you expect? There's no one else here."))
           ],
         ),
@@ -177,6 +198,9 @@ class MySettingsPageState extends StatelessWidget {
               TextButton(onPressed: () {
                 Navigator.push(context, MaterialPageRoute(builder: (context) => const NoSettings()));
               }, child: const Text("Support")),
+              FloatingActionButton(onPressed: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => const NoSettings()));
+              }, child: const Text("Login"),)
             ],
           )
         )
@@ -215,9 +239,10 @@ class ScannedItemState extends StatelessWidget {
       ),
       body: Column(
         children: [
-          Text(result == "nope" ? response : result),
-          Image.file(image),
+          Text(result == "nope" ? response : result,),
+          image,
           //throw result into prompt here
+          Text(response)
         ],
       )
     );
@@ -236,9 +261,11 @@ class ScannedItemCard extends StatelessWidget {
     return Card(
       child: Column(
         children: [
-          Text(result == "nope" ? response : result),
+          Text(result),
           image,
-          //throw result into prompt here
+          TextButton(onPressed: () => {
+            Navigator.push(context, MaterialPageRoute(builder: (context) => ScannedItemState(image: image, result: result, response: response,)))
+          }, child: Text("Expand"))
         ],
       )
     );

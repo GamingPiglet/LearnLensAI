@@ -1,24 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
-import 'package:camera/camera.dart';
+import 'package:easy_loading_button/easy_loading_button.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  final cameras = await availableCameras();
-  final firstCamera = cameras.first;
-  runApp(MyApp(camera: firstCamera));
+  runApp(MyApp());
 }
 
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key, required this.camera,});
+  const MyApp({super.key});
   
   // This widget is the root of your application.
-  final CameraDescription camera;
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Learn Lens AI',
       theme: ThemeData(
         // This is the theme of your application.
         //
@@ -38,15 +37,14 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: MyHomePage(title: 'Flutter Demo Home Page', camera: camera),
+      home: MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title, required this.camera});
+  const MyHomePage({super.key, required this.title});
 
-  final CameraDescription camera;
   // This widget is the home page of your application. It is stateful, meaning
   // that it has a State object (defined below) that contains fields that affect
   // how it looks.
@@ -63,23 +61,24 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  late CameraController _controller;
-  late Future<void> _initializeControllerFuture;
 
   List<String> appBarNames = ["Compendium", "Scan", "Profile"];
+  bool scannedCube = false;
+  bool scannedPyramid = false;
+  bool scannedCylinder = false;
+  Map<String, String> results = Map();
   int currentPageIndex = 0;
   
-  @override
-  void initState() {
-    super.initState();
-    _controller = CameraController(widget.camera, ResolutionPreset.medium);
-    _initializeControllerFuture = _controller.initialize();
-  }
+  
 
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
+  pickImage() async {
+    final imagePicker = ImagePicker();
+    final input = await imagePicker.pickImage(source: ImageSource.camera);
+    if (input == null) {
+      return;
+    }
+    File image = File(input!.path);
+    // do the flask stuff with image here, plus save into results
   }
 
   @override
@@ -133,28 +132,9 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       body: <Widget>[
         Icon(Icons.book_outlined),
-        Column(children: [
-          FutureBuilder<void>(future: _initializeControllerFuture, builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.done) {
-              return CameraPreview(_controller);
-            } else {
-              return const Center(child: CircularProgressIndicator(),);
-            }
-          }),
-          Container(padding: const EdgeInsets.only(top: 24), child: FloatingActionButton(onPressed: () async {
-            try {
-              await _initializeControllerFuture;
-              final image = await _controller.takePicture();
-              if (!context.mounted) return;
-              // throw image into roboflow here, change to compendium, enable card
-              
-            } catch (e) {
-              print(e);
-            }
-          },
-          child: const Icon(Icons.camera_alt),
-          ))
-        ],),
+        Center(child: EasyButton(idleStateWidget: Icon(Icons.camera_alt), loadingStateWidget: CircularProgressIndicator(), useWidthAnimation: false, buttonColor: Theme.of(context).colorScheme.inversePrimary, borderRadius: 10, onPressed: () => {
+          pickImage()
+        }, width: 50,)),
         Icon(Icons.home_filled),
       ][currentPageIndex], // This trailing comma makes auto-formatting nicer for build methods.
       
@@ -179,5 +159,25 @@ class MySettingsPageState extends StatelessWidget {
 }
 
 class ScannedItemCard extends StatelessWidget {
-  const ScannedItemCard({super.key, requires this.image, })
+  const ScannedItemCard({super.key, required this.image, this.result="nope", this.response="nope"});
+
+  final image;
+  final result;
+  final response;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+      ),
+      body: Column(
+        children: [
+          Text(result == "nope" ? response : result),
+          Image.file(image),
+          //throw result into prompt here
+        ],
+      )
+    );
+  }
 }

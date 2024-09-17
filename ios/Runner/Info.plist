@@ -47,5 +47,7 @@
 	<true/>
 	<key>NSCameraUsageDescription</key>
 	<string>We need to use the camera in order to scan objects.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>We need microphone permissions in order to use the camera.</string>
 </dict>
 </plist>

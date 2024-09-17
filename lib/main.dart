@@ -6,12 +6,15 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final cameras = await availableCameras();
   final firstCamera = cameras.first;
-  runApp(const MyApp());
+  runApp(MyApp(camera: firstCamera));
 }
 
+
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  const MyApp({super.key, required this.camera,});
+  
   // This widget is the root of your application.
+  final CameraDescription camera;
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -35,14 +38,15 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: MyHomePage(title: 'Flutter Demo Home Page', camera: camera),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
+  const MyHomePage({super.key, required this.title, required this.camera});
 
+  final CameraDescription camera;
   // This widget is the home page of your application. It is stateful, meaning
   // that it has a State object (defined below) that contains fields that affect
   // how it looks.
@@ -59,10 +63,25 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  late CameraController _controller;
+  late Future<void> _initializeControllerFuture;
 
   List<String> appBarNames = ["Compendium", "Scan", "Profile"];
   int currentPageIndex = 0;
   
+  @override
+  void initState() {
+    super.initState();
+    _controller = CameraController(widget.camera, ResolutionPreset.medium);
+    _initializeControllerFuture = _controller.initialize();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     
@@ -112,11 +131,31 @@ class _MyHomePageState extends State<MyHomePage> {
           icon: const Icon(Icons.menu))
         ]
       ),
-      body: const <Widget>[
+      body: <Widget>[
         Icon(Icons.book_outlined),
-        Icon(Icons.home_outlined),
+        Column(children: [
+          FutureBuilder<void>(future: _initializeControllerFuture, builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.done) {
+              return CameraPreview(_controller);
+            } else {
+              return const Center(child: CircularProgressIndicator(),);
+            }
+          }),
+          Container(padding: const EdgeInsets.only(top: 24), child: FloatingActionButton(onPressed: () async {
+            try {
+              await _initializeControllerFuture;
+              final image = await _controller.takePicture();
+              if (!context.mounted) return;
+              // throw image into roboflow here, change to compendium, enable card
+              
+            } catch (e) {
+              print(e);
+            }
+          },
+          child: const Icon(Icons.camera_alt),
+          ))
+        ],),
         Icon(Icons.home_filled),
-        Icon(Icons.menu)
       ][currentPageIndex], // This trailing comma makes auto-formatting nicer for build methods.
       
     );
@@ -137,4 +176,8 @@ class MySettingsPageState extends StatelessWidget {
         )
       );
   }
+}
+
+class ScannedItemCard extends StatelessWidget {
+  const ScannedItemCard({super.key, requires this.image, })
 }
